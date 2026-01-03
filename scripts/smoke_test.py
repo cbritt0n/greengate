@@ -25,6 +25,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--prompt", default="Give me one sustainability tip.", help="User prompt")
     parser.add_argument("--stream", action="store_true", help="Use streaming responses")
     parser.add_argument("--timeout", type=float, default=30.0, help="HTTP timeout in seconds")
+    parser.add_argument(
+        "--api-key",
+        default=os.getenv("GREENGATE_API_KEY"),
+        help="Gateway API key (sent as Authorization: Bearer <key>)",
+    )
     return parser
 
 
@@ -38,9 +43,12 @@ async def run_smoke(args: argparse.Namespace) -> int:
         "stream": args.stream,
     }
     url = args.base_url.rstrip("/") + "/v1/chat/completions"
+    headers = {}
+    if args.api_key:
+        headers["Authorization"] = f"Bearer {args.api_key}"
     async with httpx.AsyncClient(timeout=args.timeout) as client:
         if args.stream:
-            async with client.stream("POST", url, json=payload) as response:
+            async with client.stream("POST", url, json=payload, headers=headers) as response:
                 response.raise_for_status()
                 print("--- stream start ---")
                 async for chunk in response.aiter_text():
@@ -49,7 +57,7 @@ async def run_smoke(args: argparse.Namespace) -> int:
                 print("--- stream end ---")
                 _print_headers(response)
         else:
-            response = await client.post(url, json=payload)
+            response = await client.post(url, json=payload, headers=headers)
             response.raise_for_status()
             print(json.dumps(response.json(), indent=2))
             _print_headers(response)

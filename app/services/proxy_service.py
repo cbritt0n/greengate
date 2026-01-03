@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import time
 
 import httpx
 from fastapi import HTTPException, status
@@ -13,6 +14,7 @@ from app.providers.base import LLMProvider, ProviderResult
 from app.providers.cohere_provider import CohereProvider
 from app.providers.openai_provider import OpenAIProvider
 from app.services.model_router import ProviderProfile, configure_router, model_router
+from app.services.observability import record_provider_latency
 
 
 class ProxyService:
@@ -87,7 +89,13 @@ class ProxyService:
         backoff = settings.RETRY_BACKOFF_SECONDS
         while True:
             try:
+                started = time.perf_counter()
                 result = await profile.provider.invoke(payload, stream=stream)
+                record_provider_latency(
+                    provider=result.provider_name,
+                    seconds=time.perf_counter() - started,
+                    stream=stream,
+                )
                 return result
             except httpx.HTTPStatusError as exc:
                 if exc.response.status_code >= 500 and attempt < settings.RETRY_ATTEMPTS:

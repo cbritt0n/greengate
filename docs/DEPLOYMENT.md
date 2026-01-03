@@ -28,7 +28,7 @@ Stop everything with `make docker-down`.
 
 ## 3. GitHub Codespaces / Dev Containers
 
-VS Code and Codespaces pick up `.devcontainer/devcontainer.json`. Open the folder with **Dev Containers: Reopen in Container**, then run `pip install -r requirements.txt` (executed automatically post-create).
+VS Code and Codespaces pick up `.devcontainer/devcontainer.json`. Open the folder with **Dev Containers: Reopen in Container**; dev dependencies are installed post-create.
 
 For development (lint/tests/load testing), install:
 
@@ -45,6 +45,7 @@ pip install -r requirements.txt
 ## 4. Production
 
 - Run `uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers <n>` behind a reverse proxy (nginx, Azure App Gateway, Cloud Run, etc.).
+- Set `GATEWAY_API_KEY` to require client authentication when exposed publicly.
 - Mount a persistent volume for `CACHE_PERSIST_PATH` and `LEDGER_DB_PATH`.
 - Set `PROMETHEUS_METRICS_ENABLED=false` if exposing `/metrics` externally is undesirable.
 - Flip `OTEL_ENABLED=true` and configure OTLP endpoint/headers if you want distributed traces alongside metrics.

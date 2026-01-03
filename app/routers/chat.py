@@ -12,6 +12,7 @@ from app.dependencies import (
     get_energy_ledger,
     get_proxy_service,
     get_rate_limiter,
+    require_gateway_auth,
 )
 from app.schemas.chat import ChatCompletionRequest, ChatMessage
 from app.services.cache_service import CacheHit, CacheService
@@ -21,6 +22,31 @@ from app.services.proxy_service import ProxyService
 from app.services.rate_limiter import RateLimiter
 
 router = APIRouter()
+
+
+@router.get("/v1/models")
+async def list_models(_: None = Depends(require_gateway_auth)):
+    """List models available through currently configured providers."""
+
+    from app.core.config import settings
+
+    model_providers: dict[str, set[str]] = {}
+    for provider in settings.provider_configs():
+        # If a provider doesn't specify supported_models, treat as "supports all" and
+        # avoid listing an unbounded set.
+        for model in provider.supported_models:
+            model_providers.setdefault(model, set()).add(provider.name)
+
+    data = [
+        {
+            "id": model,
+            "object": "model",
+            "providers": sorted(list(providers)),
+        }
+        for model, providers in sorted(model_providers.items())
+    ]
+
+    return {"object": "list", "data": data}
 
 
 def _serialize_messages(messages: Iterable[ChatMessage]) -> str:
@@ -52,6 +78,7 @@ async def chat_completions(
     payload: ChatCompletionRequest,
     request: Request,
     response: Response,
+    _: None = Depends(require_gateway_auth),
     cache_service: CacheService = Depends(get_cache_service),
     proxy: ProxyService = Depends(get_proxy_service),
     ledger: EnergyLedger = Depends(get_energy_ledger),

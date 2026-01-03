@@ -3,7 +3,7 @@ VENV ?= .venv
 ACTIVATE = . $(VENV)/bin/activate
 SMOKE_ARGS ?=
 
-.PHONY: help install lint test run dev docker-build docker-up docker-down clean smoke loadtest
+.PHONY: help install lint test run dev docker-build docker-up docker-down clean smoke loadtest warm-cache
 
 help:
 	@echo "Common targets:"
@@ -31,6 +31,9 @@ smoke:
 
 loadtest:
 	$(ACTIVATE) && locust -f loadtests/locustfile.py --headless -u 10 -r 2 --run-time 1m $(LOCUST_ARGS)
+
+warm-cache:
+	$(ACTIVATE) && python scripts/cache_warm.py $(WARM_ARGS)
 
 clean:
 	rm -rf $(VENV) .pytest_cache

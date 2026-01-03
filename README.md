@@ -51,6 +51,7 @@ See `docs/DEPLOYMENT.md` for production guidance (scaling workers, health checks
 | `CACHE_SIMILARITY_THRESHOLD` / `CACHE_TOP_K` | Semantic cache sensitivity + breadth. |
 | `RATE_LIMIT_PER_MINUTE` | Token-bucket limit per requester. |
 | `PROMETHEUS_METRICS_ENABLED` | Toggle `/metrics` endpoint. |
+| `GATEWAY_API_KEY` | Optional gateway auth. If set, clients must send `Authorization: Bearer <key>` or `X-API-Key: <key>`. |
 | `CACHE_PERSIST_PATH`, `LEDGER_DB_PATH` | Override disk locations for cache + SQLite energy ledger. |
 | `OTEL_ENABLED`, `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_HEADERS` | Enable tracing and point to OTLP collector (headers optional `key=value` list). |
 
@@ -63,6 +64,7 @@ See `.env.example` for the full matrix of tunables.
 | Endpoint | Description |
 | --- | --- |
 | `POST /v1/chat/completions` | Drop-in OpenAI-compatible body. Automatic provider routing. Headers: `X-GreenGate-Status`, `X-GreenGate-Energy-Joules`, `X-GreenGate-Provider`, `X-GreenGate-Cache-Similarity`. Supports `"stream": true` for SSE pass-through. |
+| `GET /v1/models` | Lists configured models and which providers can serve them (requires auth if `GATEWAY_API_KEY` is set). |
 | `GET /` | JSON diagnostics with cumulative joules spent/saved and request counts (via SQLite ledger). |
 | `GET /healthz` | Lightweight readiness probe. |
 | `GET /metrics` | Prometheus exposition (Guarded by `PROMETHEUS_METRICS_ENABLED`). |
@@ -122,6 +124,7 @@ make test             # pytest (async services + routers)
 make docker-build     # smoke build container image
 make smoke            # run scripts/smoke_test.py against local/staging URL
 make loadtest         # run Locust in headless mode (overrides via LOCUST_ARGS)
+make warm-cache       # warm semantic cache (overrides via WARM_ARGS)
 ```
 
 CI (`.github/workflows/ci.yml`) now caches pip deps, runs lint/tests, and finishes with a Docker build smoke test. PRs must also satisfy the GitHub templates + checklist.
@@ -132,8 +135,8 @@ Tagging `v*.*.*` automatically triggers `.github/workflows/release.yml`, which r
 
 1. **Add a Provider** – Implement `LLMProvider` in `app/providers/`, add entries to `Settings.provider_configs()`, and list it in `LLM_PROVIDER_SEQUENCE`.
 2. **Tune the Router** – Adjust `MODEL_ROUTER_WEIGHTS` to bias toward cost, latency, uptime, or energy impact.
-3. **Deep Metrics** – Hook Prometheus output into Grafana, or read the SQLite ledger directly for emission reports.
-4. **Cache Warmers** – Use dependency overrides or a simple script to pre-seed the ChromaDB store for heavy workflows.
+3. **Deep Metrics** – Use `/metrics` in Prometheus/Grafana; includes per-provider latency via `greengate_provider_latency_seconds`.
+4. **Cache Warmers** – Pre-seed the semantic cache with `make warm-cache` (runs `scripts/cache_warm.py`).
 5. **Docs** – Add more runbooks under `docs/` (deployment + operations guides already included).
 
 Contributions welcome! See `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, and `SECURITY.md`, then open an issue or pull request with ideas for more providers, dashboards, or carbon intelligence modules.

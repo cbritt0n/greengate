@@ -147,3 +147,34 @@ def test_streaming_bypasses_cache(test_client):
     assert resp.headers["X-GreenGate-Status"] == "STREAMING"
     assert len(dummy_proxy.calls) == 1
     assert len(dummy_ledger.records) == 1
+
+
+def test_gateway_auth_rejects_missing_token(monkeypatch, test_client):
+    from app.core.config import settings
+
+    previous = settings.GATEWAY_API_KEY
+    monkeypatch.setattr(settings, "GATEWAY_API_KEY", "secret")
+    try:
+        client, *_ = test_client
+        resp = client.post("/v1/chat/completions", json=_build_payload())
+        assert resp.status_code == 401
+    finally:
+        monkeypatch.setattr(settings, "GATEWAY_API_KEY", previous)
+
+
+def test_gateway_auth_allows_bearer_token(monkeypatch, test_client):
+    from app.core.config import settings
+
+    previous = settings.GATEWAY_API_KEY
+    monkeypatch.setattr(settings, "GATEWAY_API_KEY", "secret")
+    try:
+        client, *_ = test_client
+        resp = client.post(
+            "/v1/chat/completions",
+            json=_build_payload(),
+            headers={"Authorization": "Bearer secret"},
+        )
+        assert resp.status_code == 200
+    finally:
+        monkeypatch.setattr(settings, "GATEWAY_API_KEY", previous)
+

@@ -13,6 +13,7 @@ Prometheus metrics (enabled by default) include:
 | `greengate_requests_total` | Counter | `provider`, `cache`, `status` | Total chat completion calls |
 | `greengate_energy_joules` | Histogram | _none_ | Distribution of joules spent per request |
 | `greengate_energy_saved_joules` | Histogram | _none_ | Distribution of joules saved thanks to cache hits |
+| `greengate_provider_latency_seconds` | Histogram | `provider`, `stream` | Upstream provider request latency |
 
 Scrape `/metrics` and forward to your observability stack. Pair these with the SQLite ledger for audits.
 
@@ -27,13 +28,37 @@ Make sure both paths live on durable storage in production.
 
 `RATE_LIMIT_PER_MINUTE` governs a token bucket per unique caller (API key or IP). Throttled requests return `429` with `Retry-After` header. Tune this per environment.
 
+## Gateway Authentication (Recommended)
+
+If you set `GATEWAY_API_KEY`, GreenGate requires clients to send either:
+
+- `Authorization: Bearer <key>`
+- `X-API-Key: <key>`
+
+This prevents the gateway from becoming an open proxy when exposed publicly.
+
 ## Smoke Testing
 
 Use `scripts/smoke_test.py` (via `make smoke` or direct execution) to validate a deployment after provisioning. Configure the target URL with `--base-url` or `GREENGATE_BASE_URL` and set `--stream` to validate SSE.
 
+If auth is enabled, pass `--api-key` or set `GREENGATE_API_KEY`.
+
 ## Load Testing
 
 There is a lightweight Locust scenario under `loadtests/locustfile.py`. Run `make loadtest LOCUST_ARGS="-u 20 -r 5 --run-time 2m"` to stress `/v1/chat/completions` against a staging deployment. Tune the environment through `GREENGATE_BASE_URL`, `GREENGATE_MODEL`, and `GREENGATE_PROMPT`.
+
+If auth is enabled, set `GREENGATE_API_KEY` and Locust will send a bearer token.
+
+## Cache Warming
+
+Use `scripts/cache_warm.py` (via `make warm-cache`) to pre-seed the semantic cache for common prompts.
+
+Examples:
+
+```bash
+make warm-cache WARM_ARGS="--prompt 'Summarize our company sustainability policy.'"
+make warm-cache WARM_ARGS="--file prompts.txt --concurrency 8"
+```
 
 ## OpenTelemetry Tracing
 

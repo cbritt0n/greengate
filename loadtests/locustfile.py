@@ -7,9 +7,11 @@ from locust import HttpUser, between, task
 BASE_URL = os.getenv("GREENGATE_BASE_URL", "http://localhost:8000")
 MODEL = os.getenv("GREENGATE_MODEL", "gpt-4o-mini")
 PROMPT = os.getenv("GREENGATE_PROMPT", "Share a concise eco tip.")
+API_KEY = os.getenv("GREENGATE_API_KEY")
 
 
 class ChatUser(HttpUser):
+    host = BASE_URL
     wait_time = between(1, 3)
 
     @task
@@ -22,8 +24,14 @@ class ChatUser(HttpUser):
             ],
             "stream": False,
         }
+        headers = {}
+        if API_KEY:
+            headers["Authorization"] = f"Bearer {API_KEY}"
+
         self.client.post(
-            f"{BASE_URL}/v1/chat/completions",
+            "/v1/chat/completions",
             json=payload,
+            headers=headers,
             name="chat_completion",
         )
+

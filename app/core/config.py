@@ -56,6 +56,12 @@ class Settings(BaseSettings):
     LLM_PROVIDER_SEQUENCE: str = Field("openai,anthropic,cohere,azure-openai")
     STREAMING_MAX_BUFFER_KB: int = Field(256, ge=64)
 
+    # Optional gateway authentication (recommended for production)
+    # If set, clients must send either:
+    # - Authorization: Bearer <key>
+    # - X-API-Key: <key>
+    GATEWAY_API_KEY: str | None = None
+
     @field_validator("LOG_LEVEL", mode="before")
     @classmethod
     def _normalize_log_level(cls, value: str) -> str:

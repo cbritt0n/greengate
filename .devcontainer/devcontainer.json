@@ -8,7 +8,7 @@
     "terminal.integrated.shell.linux": "/bin/bash",
     "python.defaultInterpreterPath": "/usr/local/bin/python"
   },
-  "postCreateCommand": "pip install -r requirements.txt",
+  "postCreateCommand": "pip install -r requirements-dev.txt",
   "customizations": {
     "vscode": {
       "extensions": [
