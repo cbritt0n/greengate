@@ -1,0 +1,54 @@
+name: Bug Report
+description: Help us squash bugs.
+labels: [bug]
+title: "bug: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report an issue!
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the bug and what you expected to happen.
+      placeholder: When I call /v1/chat/completions...
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps To Reproduce
+      placeholder: |
+        1. Go to...
+        2. Run...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant headers/logs
+      description: Please copy/paste logs, headers, or stack traces.
+      render: shell
+  - type: input
+    id: version
+    attributes:
+      label: GreenGate commit or tag
+      placeholder: e.g., v0.2.0 or 4c5a9d8
+    validations:
+      required: true
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: Deployment target
+      options:
+        - Docker
+        - Kubernetes
+        - Bare metal / VM
+        - Other (describe below)
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional context

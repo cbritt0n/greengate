@@ -1,0 +1,11 @@
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "ASYNC"]
+ignore = ["B008"]
+
+[tool.pytest.ini_options]
+minversion = "7.4"
+addopts = "-q"
+testpaths = ["tests"]

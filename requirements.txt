@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+httpx
+chromadb
+pydantic-settings
+tiktoken
+python-dotenv
+aiosqlite
+prometheus-client
+opentelemetry-sdk
+opentelemetry-exporter-otlp
+opentelemetry-instrumentation-fastapi
+opentelemetry-instrumentation-httpx
+
