@@ -1,5 +1,7 @@
 # GreenGate 🌿
 
+[![CI](https://github.com/cbritt0n/greengate/actions/workflows/ci.yml/badge.svg)](https://github.com/cbritt0n/greengate/actions/workflows/ci.yml)
+
 Energy-aware AI Gateway + Semantic Cache for every LLM provider you care about. GreenGate proxies chat completions, ranks providers with an eco-conscious router, streams responses end-to-end, and tracks joules spent/saved in a persistent ledger with Prometheus metrics.
 
 ## Highlights
